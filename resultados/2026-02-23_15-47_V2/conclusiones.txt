@@ -1,0 +1,53 @@
+======================================================================
+  CONCLUSIONES - PRÁCTICA 2 (Split 60/20/20 con stratify=y)
+======================================================================
+
+CONFIGURACIÓN DE SEGMENTACIÓN:
+   - Entrenamiento: 60% | Validación: 20% | Test: 20%
+   - stratify=y: Distribución de clases preservada en todos los splits
+   - Esto garantiza que cada partición tiene la misma proporción de
+     supervivientes vs no supervivientes que el dataset original.
+
+1. EFECTO DE LOS OUTLIERS (60-20-20, Clean vs Dirty):
+   - Sin Outliers (Winsorized): Precision = 90.3%, Accuracy = 75.4%
+   - Con Outliers (Original):   Precision = 88.9%, Accuracy = 77.1%
+   - Diferencia en Precision: +1.4%
+   - Diferencia en Accuracy:  -1.7%
+   > La winsorizacion MEJORA la precision al reducir el impacto de valores extremos.
+   > La winsorizacion mantiene las 891 filas originales (no elimina datos).
+
+2. CURVA ROC Y AUC:
+   - Sin Outliers: AUC = 0.8534
+   - Con Outliers: AUC = 0.8547
+   > Ambos escenarios muestran un AUC excelente (> 0.85), indicando buena capacidad discriminativa.
+   > Un AUC de 1.0 indica clasificacion perfecta, 0.5 indica clasificacion aleatoria.
+
+3. THRESHOLD DE DECISIÓN:
+   - Rango de thresholds usados: 0.900 - 0.935
+   - Threshold promedio: 0.917
+   > Un threshold alto aumenta Precision (menos falsos positivos)
+     pero reduce Recall (mas falsos negativos).
+   > El tradeoff es evidente: Precision promedio = 89.6% vs Recall promedio = 43.5%.
+
+4. RESULTADOS GENERALES:
+   - Mejor Precision:  60-20-20 Sin Outliers (90.3%)
+   - Mejor Accuracy:   60-20-20 Con Outliers (77.1%)
+   - Mejor F1-Score:   60-20-20 Con Outliers (61.0%)
+   - TODOS los escenarios alcanzaron Precision >= 85%
+   - Precision minima obtenida: 88.9%
+   - Promedios: Accuracy = 76.3% | Precision = 89.6% | Recall = 43.5%
+
+5. LIBRERÍAS SKLEARN UTILIZADAS:
+   - roc_curve: Para calcular la curva ROC (FPR, TPR)
+   - auc: Para calcular el Area Under the Curve
+   - confusion_matrix: Para generar las matrices de confusión
+   - accuracy_score: Para calcular la exactitud del modelo
+   - precision_score, recall_score, f1_score: Métricas complementarias
+
+======================================================================
+TABLA DE RESULTADOS
+======================================================================
+            Escenario  Threshold  Accuracy  Precision  Recall  F1-Score
+60-20-20 Sin Outliers      0.935    0.7542     0.9032  0.4058    0.5600
+60-20-20 Con Outliers      0.900    0.7709     0.8889  0.4638    0.6095
+======================================================================
