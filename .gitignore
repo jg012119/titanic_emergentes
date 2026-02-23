@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+env/
+.env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Resultados anteriores (solo subimos el FINAL)
+resultados/2026-02-18_*/
+
+# Gemini
+.gemini/
+
+# EDA plots generados en raiz
+eda_correlacion.png
+eda_supervivencia.png
