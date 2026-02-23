@@ -62,16 +62,21 @@ df.head(10)
 # ### 4.1 Verificación de Independencia de Variables (Correlación)
 
 # %%
-numeric_cols_eda = ['Survived', 'Pclass', 'Age', 'SibSp', 'Parch', 'Fare']
-corr_matrix = df[numeric_cols_eda].corr()
+# Crear variables codificadas para la matriz de correlación (como en el análisis post-encoding)
+df_corr = df.copy()
+df_corr['Sex_male'] = (df_corr['Sex'] == 'male').astype(int)
+df_corr['Embarked_Q'] = (df_corr['Embarked'] == 'Q').astype(int)
+df_corr['Embarked_S'] = (df_corr['Embarked'] == 'S').astype(int)
 
-plt.figure(figsize=(9, 7))
-mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
-sns.heatmap(corr_matrix, mask=mask, annot=True, fmt=".2f",
+corr_cols = ['Survived', 'Pclass', 'Age', 'SibSp', 'Parch', 'Fare', 'Sex_male', 'Embarked_Q', 'Embarked_S']
+corr_matrix = df_corr[corr_cols].corr()
+
+plt.figure(figsize=(10, 8))
+sns.heatmap(corr_matrix, annot=True, fmt=".2f",
             cmap=sns.diverging_palette(230, 20, as_cmap=True),
-            center=0, square=True, linewidths=1,
-            cbar_kws={"shrink": .8, "label": "Correlación"})
-plt.title("Matriz de Correlación – Verificación de Independencia (EDA)", fontsize=14, fontweight='bold')
+            center=0, square=True, linewidths=0.5, vmin=-1, vmax=1,
+            cbar_kws={"shrink": .8})
+plt.title("Matriz de Correlación", fontsize=14, fontweight='bold')
 plt.tight_layout()
 plt.savefig("eda_correlacion.png", dpi=150, bbox_inches='tight')
 plt.close()
@@ -243,19 +248,21 @@ for label, X, y, test_size, is_80_10_10 in scenarios:
         'Accuracy': round(acc, 4), 'Precision': round(prec, 4),
         'Recall': round(rec, 4), 'F1-Score': round(f1, 4)
     })
+    proba = model.predict_proba(X_te)[:, 1]
     scenario_data.append({
         'label': label, 'y_te': y_te, 'preds': preds,
-        'X_te': X_te, 'thr': thr,
+        'X_te': X_te, 'thr': thr, 'proba': proba,
         'acc': acc, 'prec': prec, 'rec': rec, 'f1': f1
     })
 
 # %% [markdown]
 # ---
 # ## 9️⃣ Gráficos Consolidados
-# Se generan **3 gráficos finales** (no por escenario, sino consolidados):
+# Se generan **4 gráficos finales**:
 # 1. **Matrices de Confusión** – Los 4 escenarios en una sola figura
-# 2. **Gráfico de Dispersión** – Aciertos vs Errores (escenario principal 80-20)
-# 3. **Métricas del Modelo** – Comparación de los 4 escenarios
+# 2. **Dispersión de Probabilidades** – Probabilidad predicha por instancia
+# 3. **Gráfico de Dispersión** – Age vs Fare (Aciertos vs Errores)
+# 4. **Métricas del Modelo** – Comparación de los 4 escenarios
 
 # %%
 # ════════════════════════════════════════════════════════
@@ -280,7 +287,38 @@ print("\n✅ Gráfico 1: Matrices de Confusión → matrices_confusion.png")
 
 # %%
 # ════════════════════════════════════════════════════════
-# GRÁFICO 2: Dispersión Age vs Fare (Escenario 80-20 Con Outliers)
+# GRÁFICO 2: Dispersión de Probabilidades (por escenario, 2×2)
+# ════════════════════════════════════════════════════════
+fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+fig.suptitle("Dispersión de Probabilidades – Todos los Escenarios", fontsize=15, fontweight='bold', y=1.02)
+
+for sd, ax in zip(scenario_data, axes.flatten()):
+    y_real = sd['y_te'].values
+    proba = sd['proba']
+    instancias = np.arange(len(y_real))
+
+    # Sobrevivió = rojo, No sobrevivió = azul (como el compañero)
+    colors = ['red' if y == 1 else 'blue' for y in y_real]
+    ax.scatter(instancias, proba, c=colors, alpha=0.6, s=20, edgecolors='none')
+    ax.axhline(y=0.5, color='black', linestyle='--', linewidth=1)
+    ax.set_xlabel('Instancia', fontsize=10)
+    ax.set_ylabel('Probabilidad de Supervivencia', fontsize=10)
+    ax.set_title(f"Dispersión de Probabilidades - {sd['label']}", fontsize=11)
+    ax.set_ylim(-0.02, 1.02)
+
+    # Leyenda manual
+    ax.scatter([], [], c='red', label='Sobrevivió (1)', s=30)
+    ax.scatter([], [], c='blue', label='No Sobrevivió (0)', s=30)
+    ax.legend(fontsize=8, loc='upper right')
+
+plt.tight_layout()
+plt.savefig(os.path.join(results_dir, "dispersion_probabilidades.png"), dpi=150, bbox_inches='tight')
+plt.close()
+print("✅ Gráfico 2: Dispersión de Probabilidades → dispersion_probabilidades.png")
+
+# %%
+# ════════════════════════════════════════════════════════
+# GRÁFICO 3: Dispersión Age vs Fare (Escenario 80-20 Con Outliers)
 # ════════════════════════════════════════════════════════
 sd = scenario_data[1]  # 80-20 Con Outliers
 plot_df = sd['X_te'].copy()
@@ -307,11 +345,11 @@ ax.grid(True, alpha=0.3)
 plt.tight_layout()
 plt.savefig(os.path.join(results_dir, "dispersion_age_fare.png"), dpi=150, bbox_inches='tight')
 plt.close()
-print("✅ Gráfico 2: Dispersión Age vs Fare → dispersion_age_fare.png")
+print("✅ Gráfico 3: Dispersión Age vs Fare → dispersion_age_fare.png")
 
 # %%
 # ════════════════════════════════════════════════════════
-# GRÁFICO 3: Métricas del Modelo – Comparación de Escenarios
+# GRÁFICO 4: Métricas del Modelo – Comparación de Escenarios
 # ════════════════════════════════════════════════════════
 resultados = pd.DataFrame(results_list)
 
@@ -343,7 +381,7 @@ ax.grid(axis='y', alpha=0.3)
 plt.tight_layout()
 plt.savefig(os.path.join(results_dir, "metricas_modelo.png"), dpi=150, bbox_inches='tight')
 plt.close()
-print("✅ Gráfico 3: Métricas del Modelo → metricas_modelo.png")
+print("✅ Gráfico 4: Métricas del Modelo → metricas_modelo.png")
 
 # %% [markdown]
 # ---

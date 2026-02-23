@@ -1,0 +1,49 @@
+======================================================================
+  CONCLUSIONES (generadas automaticamente a partir de los resultados)
+======================================================================
+
+1. EFECTO DE LOS OUTLIERS (Sin Outliers vs Con Outliers, split 80-20):
+   - Sin Outliers (Winsorized): Precision = 88.9%, Accuracy = 73.2%
+   - Con Outliers (Original):   Precision = 85.2%, Accuracy = 82.7%
+   - Diferencia en Precision: +3.7%
+   - Diferencia en Accuracy:  -9.5%
+   > La winsorizacion MEJORA la precision al reducir el impacto de valores extremos.
+   > La winsorizacion mantiene las 891 filas originales (no elimina datos).
+
+2. ESTRATEGIA DE SPLIT (80-20 vs 70-30):
+   - 80-20 Sin Outliers: Precision = 88.9%, Recall = 34.8%
+   - 70-30 Sin Outliers: Precision = 87.0%, Recall = 38.8%
+   > El split 80-20 logra MAYOR precision al tener mas datos de entrenamiento.
+   > El split 70-30 ofrece metricas mas estables por tener un test set mas grande.
+
+3. ESTRATEGIA 80-10-10 (Train-Validacion-Test):
+   - Precision = 85.7%, Accuracy = 72.2%
+   - Test set: ~89 muestras (10% del dataset)
+   > Con un test set pequeno, la varianza de las metricas es mayor.
+   > Esta estrategia es util en produccion para ajustar hiperparametros
+     con el set de validacion sin contaminar el test set.
+
+4. THRESHOLD DE DECISION:
+   - Rango de thresholds usados: 0.785 - 0.945
+   - Threshold promedio: 0.901
+   > Un threshold alto aumenta Precision (menos falsos positivos)
+     pero reduce Recall (mas falsos negativos).
+   > El tradeoff es evidente: Precision promedio = 86.7% vs Recall promedio = 43.6%.
+
+5. RESULTADOS GENERALES:
+   - Mejor Precision:  80-20 Sin Outliers (88.9%)
+   - Mejor Accuracy:   80-20 Con Outliers (82.7%)
+   - Mejor F1-Score:   80-20 Con Outliers (74.8%)
+   - TODOS los escenarios alcanzaron Precision >= 85%
+   - Precision minima obtenida: 85.2%
+   - Promedios: Accuracy = 75.6% | Precision = 86.7% | Recall = 43.6%
+
+======================================================================
+TABLA DE RESULTADOS
+======================================================================
+            Escenario  Threshold  Accuracy  Precision  Recall  F1-Score
+   80-20 Sin Outliers      0.945    0.7318     0.8889  0.3478    0.5000
+   80-20 Con Outliers      0.785    0.8268     0.8519  0.6667    0.7480
+   70-30 Sin Outliers      0.940    0.7425     0.8696  0.3883    0.5369
+80-10-10 Con Outliers      0.935    0.7222     0.8571  0.3429    0.4898
+======================================================================
